@@ -1,29 +1,29 @@
 package com.example.zkexperiments;
 
+import com.example.zkexperiments.config.ApplicationConfig;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
-import org.apache.curator.retry.RetryForever;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.UUID;
 
 public class Main {
-    private static final String LEADER_LATCH_PATH = "/leader_election";
+    private static final String APP_LEADER_LATCH_PATH = "/leader_election";
 
     public static void main(String[] args) throws Throwable {
-        UUID uuid = UUID.randomUUID();
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
 
-        CuratorFramework client = null;
         LeaderLatch leaderLatch = null;
         try {
-            client = CuratorFrameworkFactory.newClient(
-                    "h0010794:2181,h0010795:2181,h0010796:2181",
-                    new RetryForever(5000));
-            client.start();
+            // Send the start signal
+            context.start();
 
-            System.out.println("Started the node: " + uuid.toString());
+            CuratorFramework client = context.getBean(CuratorFramework.class);
+            UUID appUuid = UUID.randomUUID();
 
-            leaderLatch = new LeaderLatch(client, LEADER_LATCH_PATH, uuid.toString());
+            System.out.println("Started the node: " + appUuid.toString());
+
+            leaderLatch = new LeaderLatch(client, APP_LEADER_LATCH_PATH, appUuid.toString());
             leaderLatch.start();
             leaderLatch.await();
 
@@ -37,11 +37,8 @@ public class Main {
                 } catch (Throwable ignore) {}
             }
 
-            if (client != null) {
-                try {
-                    client.close();
-                } catch (Throwable ignore) {}
-            }
+            // Send the stop signal
+            context.close();
         }
     }
 }

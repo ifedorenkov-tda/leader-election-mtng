@@ -5,10 +5,23 @@ plugins {
 group 'org.example'
 version '1.0-SNAPSHOT'
 
+ext {
+    springVersion = '4.3.25.RELEASE'
+    curatorVersion = '5.1.0'
+    log4jSl4jVersion = '2.14.0'
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.apache.curator:curator-recipes:5.1.0'
+    implementation "org.springframework:spring-core:$springVersion"
+    implementation "org.springframework:spring-beans:$springVersion"
+    implementation "org.springframework:spring-context:$springVersion"
+    implementation "org.springframework:spring-context-support:$springVersion"
+
+    implementation "org.apache.curator:curator-recipes:$curatorVersion"
+
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jSl4jVersion"
 }
